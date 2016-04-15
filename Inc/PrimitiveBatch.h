@@ -13,11 +13,7 @@
 
 #pragma once
 
-#if defined(_XBOX_ONE) && defined(_TITLE)
-#include <d3d11_x.h>
-#else
-#include <d3d11_1.h>
-#endif
+#include <d3d12.h>
 
 #include <memory.h>
 #include <memory>
@@ -32,7 +28,7 @@ namespace DirectX
         class PrimitiveBatchBase
         {
         protected:
-            PrimitiveBatchBase(_In_ ID3D11DeviceContext* deviceContext, size_t maxIndices, size_t maxVertices, size_t vertexSize);
+            PrimitiveBatchBase(_In_ ID3D12GraphicsCommandList* commandList, size_t maxIndices, size_t maxVertices, size_t vertexSize);
             PrimitiveBatchBase(PrimitiveBatchBase&& moveFrom);
             PrimitiveBatchBase& operator= (PrimitiveBatchBase&& moveFrom);
 
@@ -48,7 +44,7 @@ namespace DirectX
 
         protected:
             // Internal, untyped drawing method.
-            void __cdecl Draw(D3D11_PRIMITIVE_TOPOLOGY topology, bool isIndexed, _In_opt_count_(indexCount) uint16_t const* indices, size_t indexCount, size_t vertexCount, _Out_ void** pMappedVertices);
+            void __cdecl Draw(D3D12_PRIMITIVE_TOPOLOGY topology, bool isIndexed, _In_opt_count_(indexCount) uint16_t const* indices, size_t indexCount, size_t vertexCount, _Out_ void** pMappedVertices);
 
         private:
             // Private implementation.
@@ -66,8 +62,8 @@ namespace DirectX
         static const size_t DefaultBatchSize = 2048;
 
     public:
-        PrimitiveBatch(_In_ ID3D11DeviceContext* deviceContext, size_t maxIndices = DefaultBatchSize * 3, size_t maxVertices = DefaultBatchSize)
-          : PrimitiveBatchBase(deviceContext, maxIndices, maxVertices, sizeof(TVertex))
+        PrimitiveBatch(_In_ ID3D12GraphicsCommandList* commandList, size_t maxIndices = DefaultBatchSize * 3, size_t maxVertices = DefaultBatchSize)
+          : PrimitiveBatchBase(commandList, maxIndices, maxVertices, sizeof(TVertex))
         { }
 
         PrimitiveBatch(PrimitiveBatch&& moveFrom)
@@ -82,7 +78,7 @@ namespace DirectX
 
 
         // Similar to the D3D9 API DrawPrimitiveUP.
-        void __cdecl Draw(D3D11_PRIMITIVE_TOPOLOGY topology, _In_reads_(vertexCount) TVertex const* vertices, size_t vertexCount)
+        void __cdecl Draw(D3D12_PRIMITIVE_TOPOLOGY topology, _In_reads_(vertexCount) TVertex const* vertices, size_t vertexCount)
         {
             void* mappedVertices;
 
@@ -93,7 +89,7 @@ namespace DirectX
 
 
         // Similar to the D3D9 API DrawIndexedPrimitiveUP.
-        void __cdecl DrawIndexed(D3D11_PRIMITIVE_TOPOLOGY topology, _In_reads_(indexCount) uint16_t const* indices, size_t indexCount, _In_reads_(vertexCount) TVertex const* vertices, size_t vertexCount)
+        void __cdecl DrawIndexed(D3D12_PRIMITIVE_TOPOLOGY topology, _In_reads_(indexCount) uint16_t const* indices, size_t indexCount, _In_reads_(vertexCount) TVertex const* vertices, size_t vertexCount)
         {
             void* mappedVertices;
 
@@ -107,7 +103,7 @@ namespace DirectX
         {
             TVertex* mappedVertices;
 
-            PrimitiveBatchBase::Draw(D3D11_PRIMITIVE_TOPOLOGY_LINELIST, false, nullptr, 0, 2, reinterpret_cast<void**>(&mappedVertices));
+            PrimitiveBatchBase::Draw(D3D_PRIMITIVE_TOPOLOGY_LINELIST, false, nullptr, 0, 2, reinterpret_cast<void**>(&mappedVertices));
 
             mappedVertices[0] = v1;
             mappedVertices[1] = v2;
@@ -118,7 +114,7 @@ namespace DirectX
         {
             TVertex* mappedVertices;
 
-            PrimitiveBatchBase::Draw(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, false, nullptr, 0, 3, reinterpret_cast<void**>(&mappedVertices));
+            PrimitiveBatchBase::Draw(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST, false, nullptr, 0, 3, reinterpret_cast<void**>(&mappedVertices));
 
             mappedVertices[0] = v1;
             mappedVertices[1] = v2;
@@ -132,7 +128,7 @@ namespace DirectX
 
             TVertex* mappedVertices;
 
-            PrimitiveBatchBase::Draw(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, true, quadIndices, 6, 4, reinterpret_cast<void**>(&mappedVertices));
+            PrimitiveBatchBase::Draw(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST, true, quadIndices, 6, 4, reinterpret_cast<void**>(&mappedVertices));
 
             mappedVertices[0] = v1;
             mappedVertices[1] = v2;

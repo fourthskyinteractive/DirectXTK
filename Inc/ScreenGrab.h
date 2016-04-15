@@ -21,11 +21,8 @@
 
 #pragma once
 
-#if defined(_XBOX_ONE) && defined(_TITLE)
-#include <d3d11_x.h>
-#else
-#include <d3d11_1.h>
-#endif
+
+#include <d3d12.h>
 
 #include <ocidl.h>
 
@@ -35,14 +32,14 @@
 
 namespace DirectX
 {
-    HRESULT __cdecl SaveDDSTextureToFile( _In_ ID3D11DeviceContext* pContext,
-                                          _In_ ID3D11Resource* pSource,
+    HRESULT __cdecl SaveDDSTextureToFile( _In_ ID3D12GraphicsCommandList* pContext,
+                                          _In_ ID3D12Resource* pSource,
                                           _In_z_ LPCWSTR fileName );
 
-#if !defined(WINAPI_FAMILY) || (WINAPI_FAMILY != WINAPI_FAMILY_PHONE_APP) || (_WIN32_WINNT > _WIN32_WINNT_WIN8)
+#if !defined(WINAPI_FAMILY) || (WINAPI_FAMILY != WINAPI_FAMILY_PHONE_APP) || (_WIN32_WINNT > _WIN32_WINNT_WIN10)
 
-    HRESULT __cdecl SaveWICTextureToFile( _In_ ID3D11DeviceContext* pContext,
-                                          _In_ ID3D11Resource* pSource,
+    HRESULT __cdecl SaveWICTextureToFile( _In_ ID3D12GraphicsCommandList* pContext,
+                                          _In_ ID3D12Resource* pSource,
                                           _In_ REFGUID guidContainerFormat, 
                                           _In_z_ LPCWSTR fileName,
                                           _In_opt_ const GUID* targetFormat = nullptr,

@@ -224,6 +224,9 @@
     <ClCompile Include="Src\GraphicsMemory.cpp">
       <Filter>Src</Filter>
     </ClCompile>
+    <ClCompile Include="Src\GeometricPrimitiveDX12.cpp">
+      <Filter>Src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Src\Shaders\CompileShaders.cmd">

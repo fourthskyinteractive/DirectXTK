@@ -26,126 +26,114 @@ using Microsoft::WRL::ComPtr;
 class CommonStates::Impl
 {
 public:
-    Impl(_In_ ID3D11Device* device)
+    Impl(_In_ ID3D12Device* device);
       : device(device)
     { }
 
-    HRESULT CreateBlendState(D3D11_BLEND srcBlend, D3D11_BLEND destBlend, _Out_ ID3D11BlendState** pResult);
-    HRESULT CreateDepthStencilState(bool enable, bool writeEnable, _Out_ ID3D11DepthStencilState** pResult);
-    HRESULT CreateRasterizerState(D3D11_CULL_MODE cullMode, D3D11_FILL_MODE fillMode, _Out_ ID3D11RasterizerState** pResult);
-    HRESULT CreateSamplerState(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode, _Out_ ID3D11SamplerState** pResult);
+    HRESULT CreateBlendState(D3D12_BLEND srcBlend, D3D12_BLEND destBlend, _Out_ D3D12_BLEND_DESC* pResult);
+    HRESULT CreateDepthStencilState(bool enable, bool writeEnable, _Out_ D3D12_DEPTH_STENCIL_DESC* pResult);
+    HRESULT CreateRasterizerState(D3D12_CULL_MODE cullMode, D3D12_FILL_MODE fillMode, _Out_ D3D12_RASTERIZER_DESC* pResult);
+    HRESULT CreateSamplerState(D3D12_FILTER filter, D3D12_TEXTURE_ADDRESS_MODE addressMode, _Out_ D3D12_CPU_DESCRIPTOR_HANDLE pResult);
+	
+	D3D12_STATIC_SAMPLER_DESC ParseSampler(const D3D12_SAMPLER_DESC& desc);
 
-    ComPtr<ID3D11Device> device;
+    ComPtr<ID3D12Device> device;
 
-    ComPtr<ID3D11BlendState> opaque;
-    ComPtr<ID3D11BlendState> alphaBlend;
-    ComPtr<ID3D11BlendState> additive;
-    ComPtr<ID3D11BlendState> nonPremultiplied;
+    static D3D12_BLEND_DESC opaque;
+    static D3D12_BLEND_DESC alphaBlend;
+    static D3D12_BLEND_DESC additive;
+    static D3D12_BLEND_DESC nonPremultiplied;
 
-    ComPtr<ID3D11DepthStencilState> depthNone;
-    ComPtr<ID3D11DepthStencilState> depthDefault;
-    ComPtr<ID3D11DepthStencilState> depthRead;
+    static D3D12_DEPTH_STENCIL_DESC depthNone;
+    static D3D12_DEPTH_STENCIL_DESC depthDefault;
+    static D3D12_DEPTH_STENCIL_DESC depthRead;
 
-    ComPtr<ID3D11RasterizerState> cullNone;
-    ComPtr<ID3D11RasterizerState> cullClockwise;
-    ComPtr<ID3D11RasterizerState> cullCounterClockwise;
-    ComPtr<ID3D11RasterizerState> wireframe;
+    static D3D12_RASTERIZER_DESC cullNone;
+    static D3D12_RASTERIZER_DESC cullClockwise;
+    static D3D12_RASTERIZER_DESC cullCounterClockwise;
+    static D3D12_RASTERIZER_DESC wireframe;
 
-    ComPtr<ID3D11SamplerState> pointWrap;
-    ComPtr<ID3D11SamplerState> pointClamp;
-    ComPtr<ID3D11SamplerState> linearWrap;
-    ComPtr<ID3D11SamplerState> linearClamp;
-    ComPtr<ID3D11SamplerState> anisotropicWrap;
-    ComPtr<ID3D11SamplerState> anisotropicClamp;
+    static D3D12_SAMPLER_DESC pointWrap;
+    static D3D12_SAMPLER_DESC pointClamp;
+    static D3D12_SAMPLER_DESC linearWrap;
+    static D3D12_SAMPLER_DESC linearClamp;
+    static D3D12_SAMPLER_DESC anisotropicWrap;
+    static D3D12_SAMPLER_DESC anisotropicClamp;
 
     std::mutex mutex;
 
-    static SharedResourcePool<ID3D11Device*, Impl> instancePool;
+    static SharedResourcePool<ID3D12Device*, Impl> instancePool;
 };
 
 
 // Global instance pool.
-SharedResourcePool<ID3D11Device*, CommonStates::Impl> CommonStates::Impl::instancePool;
+SharedResourcePool<ID3D12Device*, CommonStates::Impl> CommonStates::Impl::instancePool;
 
+CommonStates::Impl::Impl(_In_ ID3D12Device* device);
+    : device(device)
+{ 
+    
+}
 
 // Helper for creating blend state objects.
-HRESULT CommonStates::Impl::CreateBlendState(D3D11_BLEND srcBlend, D3D11_BLEND destBlend, _Out_ ID3D11BlendState** pResult)
+HRESULT CommonStates::Impl::CreateBlendState(D3D12_BLEND srcBlend, D3D12_BLEND destBlend, _Out_ D3D12_BLEND_DESC* pResult)
 {
-    D3D11_BLEND_DESC desc;
-    ZeroMemory(&desc, sizeof(desc));
+    ZeroMemory(pResult, sizeof(D3D12_BLEND_DESC));
 
-    desc.RenderTarget[0].BlendEnable = (srcBlend != D3D11_BLEND_ONE) ||
-                                       (destBlend != D3D11_BLEND_ZERO);
+    pResult->RenderTarget[0].BlendEnable = (srcBlend != D3D12_BLEND_ONE) ||
+                                       (destBlend != D3D12_BLEND_ZERO);
 
-    desc.RenderTarget[0].SrcBlend  = desc.RenderTarget[0].SrcBlendAlpha  = srcBlend;
-    desc.RenderTarget[0].DestBlend = desc.RenderTarget[0].DestBlendAlpha = destBlend;
-    desc.RenderTarget[0].BlendOp   = desc.RenderTarget[0].BlendOpAlpha   = D3D11_BLEND_OP_ADD;
+    pResult->RenderTarget[0].SrcBlend  = pResult->RenderTarget[0].SrcBlendAlpha  = srcBlend;
+    pResult->RenderTarget[0].DestBlend = pResult->RenderTarget[0].DestBlendAlpha = destBlend;
+    pResult->RenderTarget[0].BlendOp   = pResult->RenderTarget[0].BlendOpAlpha   = D3D12_BLEND_OP_ADD;
 
-    desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+    pResult->RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 
-    HRESULT hr = device->CreateBlendState(&desc, pResult);
-
-    if (SUCCEEDED(hr))
-        SetDebugObjectName(*pResult, "DirectXTK:CommonStates");
-
-    return hr;
+    return S_OK;
 }
 
 
 // Helper for creating depth stencil state objects.
-HRESULT CommonStates::Impl::CreateDepthStencilState(bool enable, bool writeEnable, _Out_ ID3D11DepthStencilState** pResult)
+HRESULT CommonStates::Impl::CreateDepthStencilState(bool enable, bool writeEnable, _Out_ D3D12_DEPTH_STENCIL_DESC* pResult)
 {
-    D3D11_DEPTH_STENCIL_DESC desc;
-    ZeroMemory(&desc, sizeof(desc));
+    ZeroMemory(pResult, sizeof(D3D12_DEPTH_STENCIL_DESC));
 
-    desc.DepthEnable = enable;
-    desc.DepthWriteMask = writeEnable ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
-    desc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+    pResult->DepthEnable = enable;
+    pResult->DepthWriteMask = writeEnable ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
+    pResult->DepthFunc = D3D12_COMPARISON_LESS_EQUAL;
 
-    desc.StencilEnable = false;
-    desc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
-    desc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
+    pResult->StencilEnable = false;
+    pResult->StencilReadMask = D3D12_DEFAULT_STENCIL_READ_MASK;
+    pResult->StencilWriteMask = D3D12_DEFAULT_STENCIL_WRITE_MASK;
 
-    desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-    desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-    desc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-    desc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+    pResult->FrontFace.StencilFunc = D3D12_COMPARISON_ALWAYS;
+    pResult->FrontFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
+    pResult->FrontFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
+    pResult->FrontFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
 
-    desc.BackFace = desc.FrontFace;
+    pResult->BackFace = pResult->FrontFace;
 
-    HRESULT hr = device->CreateDepthStencilState(&desc, pResult);
-
-    if (SUCCEEDED(hr))
-        SetDebugObjectName(*pResult, "DirectXTK:CommonStates");
-
-    return hr;
+    return S_OK;
 }
 
 
 // Helper for creating rasterizer state objects.
-HRESULT CommonStates::Impl::CreateRasterizerState(D3D11_CULL_MODE cullMode, D3D11_FILL_MODE fillMode, _Out_ ID3D11RasterizerState** pResult)
+HRESULT CommonStates::Impl::CreateRasterizerState(D3D12_CULL_MODE cullMode, D3D12_FILL_MODE fillMode, _Out_ D3D12_RASTERIZER_DESC* pResult)
 {
-    D3D11_RASTERIZER_DESC desc;
-    ZeroMemory(&desc, sizeof(desc));
+    ZeroMemory(pResult, sizeof(D3D12_RASTERIZER_DESC);
 
-    desc.CullMode = cullMode;
-    desc.FillMode = fillMode;
-    desc.DepthClipEnable = true;
-    desc.MultisampleEnable = true;
+    pResult->CullMode = cullMode;
+    pResult->FillMode = fillMode;
+    pResult->DepthClipEnable = true;
+    pResult->MultisampleEnable = true;
 
-    HRESULT hr = device->CreateRasterizerState(&desc, pResult);
-
-    if (SUCCEEDED(hr))
-        SetDebugObjectName(*pResult, "DirectXTK:CommonStates");
-
-    return hr;
+    return S_OK;
 }
 
-
 // Helper for creating sampler state objects.
-HRESULT CommonStates::Impl::CreateSamplerState(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode, _Out_ ID3D11SamplerState** pResult)
+HRESULT CommonStates::Impl::CreateSamplerState(D3D12_FILTER filter, D3D12_TEXTURE_ADDRESS_MODE addressMode, _Out_ D3D12_CPU_DESCRIPTOR_HANDLE pResult)
 {
-    D3D11_SAMPLER_DESC desc;
+    D3D12_SAMPLER_DESC desc;
     ZeroMemory(&desc, sizeof(desc));
 
     desc.Filter = filter;
@@ -154,26 +142,31 @@ HRESULT CommonStates::Impl::CreateSamplerState(D3D11_FILTER filter, D3D11_TEXTUR
     desc.AddressV = addressMode;
     desc.AddressW = addressMode;
 
-    desc.MaxAnisotropy = (device->GetFeatureLevel() > D3D_FEATURE_LEVEL_9_1) ? 16 : 2;
+    //desc.MaxAnisotropy = (device->GetFeatureLevel() > D3D_FEATURE_LEVEL_9_1) ? 16 : 2;
+    desc.MaxAnisotropy = 16;
     
     desc.MaxLOD = FLT_MAX;
-    desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    desc.ComparisonFunc = D3D12_COMPARISON_NEVER;
 
     HRESULT hr = device->CreateSamplerState(&desc, pResult);
-
-    if (SUCCEEDED(hr))
-        SetDebugObjectName(*pResult, "DirectXTK:CommonStates");
 
     return hr;
 }
 
+D3D12_STATIC_SAMPLER_DESC CommonStates::ParseSampler(const D3D12_SAMPLER_DESC& desc)
+{
+    D3D12_STATIC_SAMPLER_DESC result;
+    ZeroMemory(&result, sizeof(D3D12_STATIC_SAMPLER_DESC));
+    
+        
+}
 
 //--------------------------------------------------------------------------------------
 // CommonStates
 //--------------------------------------------------------------------------------------
 
 // Public constructor.
-CommonStates::CommonStates(_In_ ID3D11Device* device)
+CommonStates::CommonStates(_In_ ID3D12Device* device)
   : pImpl(Impl::instancePool.DemandCreate(device))
 {
 }
@@ -204,39 +197,27 @@ CommonStates::~CommonStates()
 // Blend states
 //--------------------------------------------------------------------------------------
 
-ID3D11BlendState* CommonStates::Opaque() const
+D3D12_BLEND_DESC CommonStates::Opaque() const
 {
-    return DemandCreate(pImpl->opaque, pImpl->mutex, [&](ID3D11BlendState** pResult)
-    {
-        return pImpl->CreateBlendState(D3D11_BLEND_ONE, D3D11_BLEND_ZERO, pResult);
-    });
+    return pImpl->opaque;
 }
 
 
-ID3D11BlendState* CommonStates::AlphaBlend() const
+D3D12_BLEND_DESC CommonStates::AlphaBlend() const
 {
-    return DemandCreate(pImpl->alphaBlend, pImpl->mutex, [&](ID3D11BlendState** pResult)
-    {
-        return pImpl->CreateBlendState(D3D11_BLEND_ONE, D3D11_BLEND_INV_SRC_ALPHA, pResult);
-    });
+    return pImpl->alphaBlend;
 }
 
 
-ID3D11BlendState* CommonStates::Additive() const
+D3D12_BLEND_DESC CommonStates::Additive() const
 {
-    return DemandCreate(pImpl->additive, pImpl->mutex, [&](ID3D11BlendState** pResult)
-    {
-        return pImpl->CreateBlendState(D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_ONE, pResult);
-    });
+    return pImpl->additive;
 }
 
 
-ID3D11BlendState* CommonStates::NonPremultiplied() const
+D3D12_BLEND_DESC CommonStates::NonPremultiplied() const
 {
-    return DemandCreate(pImpl->nonPremultiplied, pImpl->mutex, [&](ID3D11BlendState** pResult)
-    {
-        return pImpl->CreateBlendState(D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA, pResult);
-    });
+    return pImpl->nonPremultiplied;
 }
 
 
@@ -244,30 +225,21 @@ ID3D11BlendState* CommonStates::NonPremultiplied() const
 // Depth stencil states
 //--------------------------------------------------------------------------------------
 
-ID3D11DepthStencilState* CommonStates::DepthNone() const
+D3D12_DEPTH_STENCIL_STATE CommonStates::DepthNone() const
 {
-    return DemandCreate(pImpl->depthNone, pImpl->mutex, [&](ID3D11DepthStencilState** pResult)
-    {
-        return pImpl->CreateDepthStencilState(false, false, pResult);
-    });
+    return pImpl->depthNone;
 }
 
 
-ID3D11DepthStencilState* CommonStates::DepthDefault() const
+D3D12_DEPTH_STENCIL_STATE CommonStates::DepthDefault() const
 {
-    return DemandCreate(pImpl->depthDefault, pImpl->mutex, [&](ID3D11DepthStencilState** pResult)
-    {
-        return pImpl->CreateDepthStencilState(true, true, pResult);
-    });
+    return pImpl->depthDefault;
 }
 
 
-ID3D11DepthStencilState* CommonStates::DepthRead() const
+D3D12_DEPTH_STENCIL_STATE CommonStates::DepthRead() const
 {
-    return DemandCreate(pImpl->depthRead, pImpl->mutex, [&](ID3D11DepthStencilState** pResult)
-    {
-        return pImpl->CreateDepthStencilState(true, false, pResult);
-    });
+    return pImpl->depthRead;
 }
 
 
@@ -275,39 +247,27 @@ ID3D11DepthStencilState* CommonStates::DepthRead() const
 // Rasterizer states
 //--------------------------------------------------------------------------------------
 
-ID3D11RasterizerState* CommonStates::CullNone() const
+D3D12_RASTERIZER_STATE CommonStates::CullNone() const
 {
-    return DemandCreate(pImpl->cullNone, pImpl->mutex, [&](ID3D11RasterizerState** pResult)
-    {
-        return pImpl->CreateRasterizerState(D3D11_CULL_NONE, D3D11_FILL_SOLID, pResult);
-    });
+    return pImpl->cullNone;
 }
 
 
-ID3D11RasterizerState* CommonStates::CullClockwise() const
+D3D12_RASTERIZER_STATE CommonStates::CullClockwise() const
 {
-    return DemandCreate(pImpl->cullClockwise, pImpl->mutex, [&](ID3D11RasterizerState** pResult)
-    {
-        return pImpl->CreateRasterizerState(D3D11_CULL_FRONT, D3D11_FILL_SOLID, pResult);
-    });
+    return pImpl->cullClockwise;
 }
 
 
-ID3D11RasterizerState* CommonStates::CullCounterClockwise() const
+D3D12_RASTERIZER_STATE CommonStates::CullCounterClockwise() const
 {
-    return DemandCreate(pImpl->cullCounterClockwise, pImpl->mutex, [&](ID3D11RasterizerState** pResult)
-    {
-        return pImpl->CreateRasterizerState(D3D11_CULL_BACK, D3D11_FILL_SOLID, pResult);
-    });
+    return pImpl->cullCounterClockwise;
 }
 
 
-ID3D11RasterizerState* CommonStates::Wireframe() const
+D3D12_RASTERIZER_STATE CommonStates::Wireframe() const
 {
-    return DemandCreate(pImpl->wireframe, pImpl->mutex, [&](ID3D11RasterizerState** pResult)
-    {
-        return pImpl->CreateRasterizerState(D3D11_CULL_NONE, D3D11_FILL_WIREFRAME, pResult);
-    });
+    return pImpl->wireframe;
 }
 
 
@@ -315,55 +275,37 @@ ID3D11RasterizerState* CommonStates::Wireframe() const
 // Sampler states
 //--------------------------------------------------------------------------------------
 
-ID3D11SamplerState* CommonStates::PointWrap() const
+D3D12_SAMPLER_DESC CommonStates::PointWrap() const
 {
-    return DemandCreate(pImpl->pointWrap, pImpl->mutex, [&](ID3D11SamplerState** pResult)
-    {
-        return pImpl->CreateSamplerState(D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_WRAP, pResult);
-    });
+    return pImpl->pointWrap;
 }
 
 
-ID3D11SamplerState* CommonStates::PointClamp() const
+D3D12_SAMPLER_DESC CommonStates::PointClamp() const
 {
-    return DemandCreate(pImpl->pointClamp, pImpl->mutex, [&](ID3D11SamplerState** pResult)
-    {
-        return pImpl->CreateSamplerState(D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_CLAMP, pResult);
-    });
+    return pImpl->pointClamp;
 }
 
 
-ID3D11SamplerState* CommonStates::LinearWrap() const
+D3D12_SAMPLER_DESC CommonStates::LinearWrap() const
 {
-    return DemandCreate(pImpl->linearWrap, pImpl->mutex, [&](ID3D11SamplerState** pResult)
-    {
-        return pImpl->CreateSamplerState(D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_WRAP, pResult);
-    });
+    return pImpl->linearWrap;
 }
 
 
-ID3D11SamplerState* CommonStates::LinearClamp() const
+D3D12_SAMPLER_DESC CommonStates::LinearClamp() const
 {
-    return DemandCreate(pImpl->linearClamp, pImpl->mutex, [&](ID3D11SamplerState** pResult)
-    {
-        return pImpl->CreateSamplerState(D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, pResult);
-    });
+    return pImpl->linearClamp;
 }
 
 
-ID3D11SamplerState* CommonStates::AnisotropicWrap() const
+D3D12_SAMPLER_DESC CommonStates::AnisotropicWrap() const
 {
-    return DemandCreate(pImpl->anisotropicWrap, pImpl->mutex, [&](ID3D11SamplerState** pResult)
-    {
-        return pImpl->CreateSamplerState(D3D11_FILTER_ANISOTROPIC, D3D11_TEXTURE_ADDRESS_WRAP, pResult);
-    });
+    return pImpl->anisotropicWrap;
 }
 
 
-ID3D11SamplerState* CommonStates::AnisotropicClamp() const
+D3D12_SAMPLER_DESC CommonStates::AnisotropicClamp() const
 {
-    return DemandCreate(pImpl->anisotropicClamp, pImpl->mutex, [&](ID3D11SamplerState** pResult)
-    {
-        return pImpl->CreateSamplerState(D3D11_FILTER_ANISOTROPIC, D3D11_TEXTURE_ADDRESS_CLAMP, pResult);
-    });
+    return pImpl->anisotropicClamp;
 }

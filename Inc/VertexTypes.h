@@ -13,11 +13,7 @@
 
 #pragma once
 
-#if defined(_XBOX_ONE) && defined(_TITLE)
-#include <d3d11_x.h>
-#else
-#include <d3d11_1.h>
-#endif
+#include <d3d12.h>
 
 #include <DirectXMath.h>
 
@@ -44,7 +40,7 @@ namespace DirectX
         XMFLOAT4 color;
 
         static const int InputElementCount = 2;
-        static const D3D11_INPUT_ELEMENT_DESC InputElements[InputElementCount];
+        static const D3D12_INPUT_ELEMENT_DESC InputElements[InputElementCount];
     };
 
 
@@ -68,7 +64,7 @@ namespace DirectX
         XMFLOAT2 textureCoordinate;
 
         static const int InputElementCount = 2;
-        static const D3D11_INPUT_ELEMENT_DESC InputElements[InputElementCount];
+        static const D3D12_INPUT_ELEMENT_DESC InputElements[InputElementCount];
     };
 
 
@@ -92,7 +88,7 @@ namespace DirectX
         XMFLOAT3 normal;
 
         static const int InputElementCount = 2;
-        static const D3D11_INPUT_ELEMENT_DESC InputElements[InputElementCount];
+        static const D3D12_INPUT_ELEMENT_DESC InputElements[InputElementCount];
     };
 
 
@@ -119,7 +115,7 @@ namespace DirectX
         XMFLOAT2 textureCoordinate;
 
         static const int InputElementCount = 3;
-        static const D3D11_INPUT_ELEMENT_DESC InputElements[InputElementCount];
+        static const D3D12_INPUT_ELEMENT_DESC InputElements[InputElementCount];
     };
 
 
@@ -146,7 +142,7 @@ namespace DirectX
         XMFLOAT4 color;
 
         static const int InputElementCount = 3;
-        static const D3D11_INPUT_ELEMENT_DESC InputElements[InputElementCount];
+        static const D3D12_INPUT_ELEMENT_DESC InputElements[InputElementCount];
     };
 
 
@@ -173,7 +169,7 @@ namespace DirectX
         XMFLOAT2 textureCoordinate;
 
         static const int InputElementCount = 3;
-        static const D3D11_INPUT_ELEMENT_DESC InputElements[InputElementCount];
+        static const D3D12_INPUT_ELEMENT_DESC InputElements[InputElementCount];
     };
 
 
@@ -203,7 +199,7 @@ namespace DirectX
         XMFLOAT2 textureCoordinate;
 
         static const int InputElementCount = 4;
-        static const D3D11_INPUT_ELEMENT_DESC InputElements[InputElementCount];
+        static const D3D12_INPUT_ELEMENT_DESC InputElements[InputElementCount];
     };
 
 
@@ -260,7 +256,7 @@ namespace DirectX
         void XM_CALLCONV SetColor( FXMVECTOR icolor );
 
         static const int InputElementCount = 5;
-        static const D3D11_INPUT_ELEMENT_DESC InputElements[InputElementCount];
+        static const D3D12_INPUT_ELEMENT_DESC InputElements[InputElementCount];
     };
 
 
@@ -311,6 +307,6 @@ namespace DirectX
         void XM_CALLCONV SetBlendWeights( FXMVECTOR iweights );
 
         static const int InputElementCount = 7;
-        static const D3D11_INPUT_ELEMENT_DESC InputElements[InputElementCount];
+        static const D3D12_INPUT_ELEMENT_DESC InputElements[InputElementCount];
     };
 }

@@ -13,11 +13,7 @@
 
 #pragma once
 
-#if defined(_XBOX_ONE) && defined(_TITLE)
-#include <d3d11_x.h>
-#else
-#include <d3d11_1.h>
-#endif
+#include <d3d12.h>
 
 #include <memory>
 
@@ -27,7 +23,7 @@ namespace DirectX
     class CommonStates
     {
     public:
-        explicit CommonStates(_In_ ID3D11Device* device);
+        explicit CommonStates(_In_ ID3D12Device* device);
         CommonStates(CommonStates&& moveFrom);
         CommonStates& operator= (CommonStates&& moveFrom);
 
@@ -37,29 +33,37 @@ namespace DirectX
         virtual ~CommonStates();
 
         // Blend states.
-        ID3D11BlendState* __cdecl Opaque() const;
-        ID3D11BlendState* __cdecl AlphaBlend() const;
-        ID3D11BlendState* __cdecl Additive() const;
-        ID3D11BlendState* __cdecl NonPremultiplied() const;
+        D3D12_BLEND_DESC __cdecl Opaque() const;
+        D3D12_BLEND_DESC __cdecl AlphaBlend() const;
+        D3D12_BLEND_DESC __cdecl Additive() const;
+        D3D12_BLEND_DESC __cdecl NonPremultiplied() const;
 
         // Depth stencil states.
-        ID3D11DepthStencilState* __cdecl DepthNone() const;
-        ID3D11DepthStencilState* __cdecl DepthDefault() const;
-        ID3D11DepthStencilState* __cdecl DepthRead() const;
+        D3D12_DEPTH_STENCIL_DESC __cdecl DepthNone() const;
+        D3D12_DEPTH_STENCIL_DESC __cdecl DepthDefault() const;
+        D3D12_DEPTH_STENCIL_DESC __cdecl DepthRead() const;
 
         // Rasterizer states.
-        ID3D11RasterizerState* __cdecl CullNone() const;
-        ID3D11RasterizerState* __cdecl CullClockwise() const;
-        ID3D11RasterizerState* __cdecl CullCounterClockwise() const;
-        ID3D11RasterizerState* __cdecl Wireframe() const;
+        D3D12_RASTERIZER_DESC __cdecl CullNone() const;
+        D3D12_RASTERIZER_DESC __cdecl CullClockwise() const;
+        D3D12_RASTERIZER_DESC __cdecl CullCounterClockwise() const;
+        D3D12_RASTERIZER_DESC __cdecl Wireframe() const;
 
         // Sampler states.
-        ID3D11SamplerState* __cdecl PointWrap() const;
-        ID3D11SamplerState* __cdecl PointClamp() const;
-        ID3D11SamplerState* __cdecl LinearWrap() const;
-        ID3D11SamplerState* __cdecl LinearClamp() const;
-        ID3D11SamplerState* __cdecl AnisotropicWrap() const;
-        ID3D11SamplerState* __cdecl AnisotropicClamp() const;
+        D3D12_SAMPLER_DESC __cdecl PointWrap() const;
+        D3D12_SAMPLER_DESC __cdecl PointClamp() const;
+        D3D12_SAMPLER_DESC __cdecl LinearWrap() const;
+        D3D12_SAMPLER_DESC __cdecl LinearClamp() const;
+        D3D12_SAMPLER_DESC __cdecl AnisotropicWrap() const;
+        D3D12_SAMPLER_DESC __cdecl AnisotropicClamp() const;
+        
+        // Static sampler states.
+        D3D12_STATIC_SAMPLER_DESC __cdecl PointWrap(UINT shaderRegister, UINT registerSpace, D3D12_SHADER_VISIBILITY shaderVisibility) const;
+        D3D12_STATIC_SAMPLER_DESC __cdecl PointClamp(UINT shaderRegister, UINT registerSpace, D3D12_SHADER_VISIBILITY shaderVisibility) const;
+        D3D12_STATIC_SAMPLER_DESC __cdecl LinearWrap(UINT shaderRegister, UINT registerSpace, D3D12_SHADER_VISIBILITY shaderVisibility) const;
+        D3D12_STATIC_SAMPLER_DESC __cdecl LinearClamp(UINT shaderRegister, UINT registerSpace, D3D12_SHADER_VISIBILITY shaderVisibility) const;
+        D3D12_STATIC_SAMPLER_DESC __cdecl AnisotropicWrap(UINT shaderRegister, UINT registerSpace, D3D12_SHADER_VISIBILITY shaderVisibility) const;
+        D3D12_STATIC_SAMPLER_DESC __cdecl AnisotropicClamp(UINT shaderRegister, UINT registerSpace, D3D12_SHADER_VISIBILITY shaderVisibility) const;
 
     private:
         // Private implementation.
